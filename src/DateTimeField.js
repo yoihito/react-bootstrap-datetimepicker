@@ -61,16 +61,16 @@ export default class DateTimeField extends Component {
         left: -9999,
         zIndex: "9999 !important"
       },
-      viewDate: moment(this.props.dateTime, this.props.format, true).startOf("month"),
+      viewDate: moment(this.props.dateTime, this.props.format, true).isValid() ? moment(this.props.dateTime, this.props.format, true).startOf("month") : moment().startOf("month"),
       selectedDate: moment(this.props.dateTime, this.props.format, true),
-      inputValue: typeof this.props.defaultText !== "undefined" ? this.props.defaultText : moment(this.props.dateTime, this.props.format, true).format(this.resolvePropsInputFormat())
+      inputValue: typeof this.props.defaultText !== "undefined" ? this.props.defaultText : (moment(this.props.dateTime, this.props.format, true).isValid() ? moment(this.props.dateTime, this.props.format, true).format(this.resolvePropsInputFormat()) : '')
   }
 
   componentWillReceiveProps = (nextProps) => {
     let state = {};
     if (nextProps.inputFormat !== this.props.inputFormat) {
         state.inputFormat = nextProps.inputFormat;
-        state.inputValue = moment(nextProps.dateTime, nextProps.format, true).format(nextProps.inputFormat);
+        state.inputValue = moment(nextProps.dateTime, nextProps.format, true).isValid() ? moment(nextProps.dateTime, nextProps.format, true).format(nextProps.inputFormat) : '';
     }
 
     if (nextProps.dateTime !== this.props.dateTime && moment(nextProps.dateTime, nextProps.format, true).isValid()) {
@@ -112,7 +112,7 @@ export default class DateTimeField extends Component {
       else if (target.className.indexOf("old") >= 0) month = this.state.viewDate.month() - 1;
       else month = this.state.viewDate.month();
       return this.setState({
-        selectedDate: this.state.viewDate.clone().month(month).date(parseInt(e.target.innerHTML)).hour(this.state.selectedDate.hours()).minute(this.state.selectedDate.minutes())
+        selectedDate: this.state.selectedDate.isValid() ? this.state.viewDate.clone().month(month).date(parseInt(e.target.innerHTML)).hour(this.state.selectedDate.hours()).minute(this.state.selectedDate.minutes()) : this.state.viewDate.clone().month(month).date(parseInt(e.target.innerHTML))
       }, function() {
         this.closePicker();
         this.props.onChange(this.state.selectedDate.format(this.props.format));
@@ -240,7 +240,7 @@ export default class DateTimeField extends Component {
   }
 
   togglePeriod = () => {
-    if (this.state.selectedDate.hour() > 12) {
+    if (this.state.selectedDate.hour() >= 12) {
       return this.onChange(this.state.selectedDate.clone().subtract(12, "hours").format(this.state.inputFormat));
     } else {
       return this.onChange(this.state.selectedDate.clone().add(12, "hours").format(this.state.inputFormat));
@@ -248,6 +248,16 @@ export default class DateTimeField extends Component {
   }
 
   togglePicker = () => {
+    if(!this.state.selectedDate.isValid()) {
+      this.setState({
+        selectedDate: moment().startOf('day')
+      }, function() {
+        this.props.onChange(this.state.selectedDate.format(this.props.format));
+        return this.setState({
+          inputValue: this.state.selectedDate.format(this.state.inputFormat)
+        });
+      });
+    }
     return this.setState({
       showDatePicker: !this.state.showDatePicker,
       showTimePicker: !this.state.showTimePicker
