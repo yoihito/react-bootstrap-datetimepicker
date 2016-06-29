@@ -12,7 +12,6 @@
     "build-npm": "babel --stage 0 ./src -d ./lib --ignore __tests__/*",
     "build": "NODE_ENV=production webpack --output-file react-bootstrap-datetimepicker.js",
     "build-min": "NODE_ENV=production COMPRESS=1 webpack --output-file react-bootstrap-datetimepicker.min.js",
-    "postinstall": "npm run build-npm",
     "examples": "webpack-dev-server --config ./examples/webpack.config.js",
     "test": "jest",
     "lint": "eslint ."
